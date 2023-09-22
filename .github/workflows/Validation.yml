@@ -1,0 +1,109 @@
+name: Build and Validate
+
+on:
+  # NOTE: Include "[no ci]", "[skip ci]", or "[ci skip]" in the commit message
+  #       to prevent push and pull_request events from triggering workflows.
+
+  push:
+    branches: [main, dev]
+
+  # By default, only `opened`, `synchronize`, and `reopened` activity types will trigger the workflow
+  pull_request:
+
+  # Manual trigger:
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+  CMAKE_BUILD_PARALLEL_LEVEL: 3 # Use up to 3 CPUs to build juceaide, etc.
+  STRICTNESS_LEVEL: 10    # Strictness level for pluginval validation
+  TIMEOUT_MS: 60000       # Set pluginval to time out after 1 minute
+
+# Jobs run in parallel by default
+jobs:
+  build_and_validate:
+    name: Build and validate on ${{ matrix.config.name }}
+  
+    runs-on: ${{ matrix.config.os }}
+    
+    strategy:
+      # Don't cancel all in-progress jobs if any matrix job fails:
+      fail-fast: false
+      # Define a matrix of job configurations:
+      matrix:
+        config:
+        - {
+            name: 'MacOS Latest',
+            os: macos-latest,
+            gen: 'make',   # CMake generator
+            # Use ccache. Enable building universal binaries. Set the minimum MacOS target:
+            cmake_config_flags: "-D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache -D CMAKE_OSX_ARCHITECTURES=arm64\\;x86_64 -D CMAKE_OSX_DEPLOYMENT_TARGET=10.13",
+            # Enable parallel builds with make:
+            cmake_build_flags: "--parallel 6",
+            pluginval_link: "https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_macOS.zip",
+            pluginval_path: "pluginval.app/Contents/MacOS/pluginval"
+          }
+        - {
+            name: 'Windows Latest',
+            os: windows-latest,
+            gen: 'MSVC',    # CMake generator
+            pluginval_link: "https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_Windows.zip",
+            pluginval_path: "./pluginval.exe"
+          }
+
+    # Steps run in sequence. Each step runs in its own process in the runner environment and has access to the workspace and filesystem
+    # NB! Because steps run in their own process, changes to environment variables are not preserved between steps
+    steps:
+    
+    - name: Checkout code 
+      uses: actions/checkout@v3
+
+    # Use the ccache compiler cache to speed up builds
+    # Note: ccache does not support Windows
+    - name: Enable ccache
+      if: runner.os != 'Windows'
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        key: ${{ runner.os }}-${{ env.BUILD_TYPE }}
+
+    # Set up the dependency cache to be updated for every new commit
+    # We include the CMake generator name in the cache key. This helps avoiding cache conflicts when switching generators
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: Libs
+        key: libs-${{ runner.os }}-${{ matrix.config.gen }}-${{ github.sha }}
+        restore-keys: libs-${{ runner.os }}-${{ matrix.config.gen }}-
+
+    - name: Configure CMake
+      run: cmake -B Build ${{ matrix.config.cmake_config_flags }} -D CMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+
+    - name: Build
+      run: cmake --build Build --config ${{ env.BUILD_TYPE }} ${{ matrix.config.cmake_build_flags }}
+
+    # Note: I was unable to get AU validation with pluginval 1.0.x working on a GitHub Actions runner even when copying the plugin to `/Library/Audio/Plug-ins/Components`.
+    #       Needs further investigation.
+    # Details (issue now closed): https://github.com/Tracktion/pluginval/issues/39
+    - name: Validate
+      shell: bash
+      working-directory: Build
+      env:
+        VALIDATE_IN_PROCESS: true
+      run: |
+        curl -LsS ${{ matrix.config.pluginval_link }} -o pluginval.zip
+        unzip -q pluginval
+        ${{ matrix.config.pluginval_path }} --validate *_artefacts/${{ env.BUILD_TYPE }}/VST3/*.vst3
+
+    - name: Prepare build artifacts
+      shell: bash
+      working-directory: Build
+      run: |
+        shopt -s extglob  # Enable bash extended globbing
+        mkdir build-${{ runner.os }}
+        mv *_artefacts/${{ env.BUILD_TYPE }}/@(VST3|AU)/*.@(vst3|component) build-${{ runner.os }}/
+
+    - name: Archive build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-${{ runner.os }}
+        path: Build/build-${{ runner.os }}
