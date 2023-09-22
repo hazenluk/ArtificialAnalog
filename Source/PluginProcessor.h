@@ -1,6 +1,14 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
+#include <RTNeural/RTNeural.h>
+
+using ModelType = RTNeural::ModelT<float, 2, 2,
+    RTNeural::DenseT<float, 2, 8>,
+    RTNeural::TanhActivationT<float, 8>,
+    RTNeural::DenseT<float, 8, 2>,
+    RTNeural::TanhActivationT<float, 2>
+>;
 
 //==============================================================================
 class AudioPluginAudioProcessor  : public juce::AudioProcessor
@@ -45,4 +53,8 @@ public:
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessor)
+    void loadModel(std::istream& jsonStream);
+
+    ModelType model;
+    float state[2] = {0, 0}; //TODO: Change to mirror number of channels (use vector?)
 };

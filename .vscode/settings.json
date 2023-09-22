@@ -1,0 +1,18 @@
+{
+    "files.associations": {
+        "regex": "cpp",
+        "sstream": "cpp",
+        "format": "cpp",
+        "future": "cpp",
+        "istream": "cpp",
+        "memory": "cpp",
+        "type_traits": "cpp",
+        "xlocmes": "cpp",
+        "xlocmon": "cpp",
+        "xlocnum": "cpp",
+        "xloctime": "cpp",
+        "*.mm": "cpp",
+        "iosfwd": "cpp",
+        "xlocbuf": "cpp"
+    }
+}

@@ -7,7 +7,7 @@ project(ArtificialAnalog VERSION 0.0.1)
 
 ### Dependency versions ###
 
-set(LIB_JUCE_TAG "7.0.5")
+set(LIB_JUCE_TAG "7.0.7")
 
 
 ### IDE Generator pre-config ###
@@ -106,6 +106,7 @@ set_target_properties(${project_targets} PROPERTIES CXX_EXTENSIONS OFF)
 
 # Add the subdirectory with source files.
 add_subdirectory(Source)
+add_subdirectory("Third_Party/RTNeural")
 
 # `juce_generate_juce_header` will create a JuceHeader.h for a given target, which will be generated
 # into your build tree. The include path for this header will be automatically added to the target.
@@ -138,14 +139,18 @@ target_compile_definitions("${PROJECT_NAME}"
 # we're linking our executable target to the `juce::juce_audio_utils` module. Inter-module
 # dependencies are resolved automatically.
 
+juce_add_binary_data(Assets
+    SOURCES "Assets/test_model.json")
+
 target_link_libraries("${PROJECT_NAME}"
     PRIVATE
-        # Assets                # If we'd created a binary data target, we'd link to it here
+        Assets                # If we'd created a binary data target, we'd link to it here
         juce::juce_audio_utils
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
-        juce::juce_recommended_warning_flags)
+        juce::juce_recommended_warning_flags
+        RTNeural)
 
 
 ### IDE Generator post-config ###

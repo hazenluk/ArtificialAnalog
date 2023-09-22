@@ -1,6 +1,23 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+#include <sstream>
+#include <string>
+
+#include <RTNeural/RTNeural.h>
+#include "BinaryData.h"
+
+void AudioPluginAudioProcessor::loadModel(std::istream& jsonStream)
+{
+    nlohmann::json modelJson;
+    jsonStream >> modelJson;
+
+    auto& dense1 = model.get<0>();
+    RTNeural::torch_helpers::loadDense<float> (modelJson, "fc1.", dense1);
+    auto& dense2 = model.get<2>();
+    RTNeural::torch_helpers::loadDense<float> (modelJson, "fc2.", dense2);
+}
+
 //==============================================================================
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
      : AudioProcessor (BusesProperties()
@@ -12,6 +29,13 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
                      #endif
                        )
 {
+    int model_json_size_bytes;
+    const char* model_json = BinaryData::getNamedResource("test_model_json", model_json_size_bytes);
+    std::string model_json_str(model_json, model_json_size_bytes/sizeof(char));
+    std::istringstream model_json_ss(model_json_str);
+    loadModel(model_json_ss);
+    model.reset();
+
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
@@ -145,11 +169,21 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
-        juce::ignoreUnused (channelData);
-        // ..do something to the data...
+    float input[2];
+    float output[2];
+    for (int channel = 0; channel < buffer.getNumChannels(); ++channel) {
+    // to access the sample in the channel as a C-style array
+        auto channelSamples = buffer.getWritePointer(channel);
+
+        // for each sample in the channel
+        for (int i = 0; i < buffer.getNumSamples(); ++i) {
+            input[0] = channelSamples[i];
+            input[1] = state[channel];
+            model.forward(input);
+            std::copy(model.getOutputs(), model.getOutputs() + 2, std::begin(output));
+            channelSamples[i] = output[0];
+            state[channel] = output[1] += state[channel]; //residual
+        }
     }
 }
 
