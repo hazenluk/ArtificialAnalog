@@ -118,7 +118,6 @@ Python/venv
 *__pycache__
 
 #LTSpice
-LTSpice/*/*.asc
 LTSpice/*/*.log
 LTSpice/*/*.op.raw
 LTSpice/*/*.raw
