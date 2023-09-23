@@ -112,3 +112,14 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/C++,CMake,macos,windows
+
+# Python
+Python/venv
+*__pycache__
+
+#LTSpice
+LTSpice/*/*.asc
+LTSpice/*/*.log
+LTSpice/*/*.op.raw
+LTSpice/*/*.raw
+LTSpice/*/*.net
