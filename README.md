@@ -1,45 +1,20 @@
-# JUCE CMake Audio Plugin Template
+# Realtime Modelling of Nonlinear Dynamical Systems for Analog Audio Emulation
 
-[![Build](https://img.shields.io/github/actions/workflow/status/anthonyalfimov/JUCE-CMake-Plugin-Template/Validation.yml?branch=main&logo=github)](https://github.com/anthonyalfimov/JUCE-CMake-Plugin-Template/actions)
+An emulation of classic analog effects using machine learning and state-space analysis of nonlinear circuits (WIP).
 
-A template for creating an audio plugin using [JUCE 6/7](https://github.com/juce-framework/JUCE) and [CMake](https://cmake.org).
+The concept is based on the work of Julian Parker et. all [1], with new contributions being compilation of the model into a real-time performant VST and modelling of reponses to user parameter changes in dynamic use.
 
-- Works as a drop-in replacement for Projucer - no changes to the source code are necessary! The template can also be used alongside a `.jucer` project.
-- Generates clean Xcode and Visual Studio projects (reasonable source file organisation, only the necessary build schemes for Xcode).
-- Uses CMake to manage dependencies (e.g. JUCE). The template creates a shallow clone of the specified git tag or branch to reduce download times and disk usage.
-- Uses GitHub Actions to build and validate the plugin on MacOS and Windows. Dependencies and compiler output are cached for faster builds.
+Current progress includes emulation of the results of Parker et. all in real-time and packaging into a VST. Future work will focus on the construction of a physical hardware device for sampling circuits, dynamic changes in the model in response to user input, improving model musicality, and publicly releasing a database of models emulating famous and classic circuits.
 
-To learn how to replace a Projucer project with this template, see the [**Migrating from Projucer**](MIGRATE_FROM_PROJUCER.md) guide.
+The proof of concept phase is already partially complete, but will be expanded to model more complicated behavior before moving on to data collection. The proof of concept model uses data generated from LTSpice simulations of circuit behavior as ground truth and learns an emulation of the circuit in a series of fully connected layers with hyperbolic tangent activations. Rather than treating audio as time series data and the circuit as a black box, the model learns to predict from the input and current model state (the voltage across all energy storage elements in the circuit) the output and next model state. This is a technically sufficient model of the circuit if it is considered time-invariant, since circuit output can then be completely characterized by current state and input. Time invariance is of little concern in the circuits of interest. Heating of elements over time could be considered a time-varying contributor to circuit behavior, but this could be modeled instead by considering temperature as a state variable. Currently, a functional diode clipper model has been implemented fully, from LTSpice data collection, to pytorch model training, to model encoding and optimization in a C++ based VST that can run 500 times faster than realtime on an AMD Ryzen 5 5600x.
 
-## Generating IDE project
 
-To generate an **Xcode** project, run:
-```sh
-cmake -B Build -G Xcode -D CMAKE_OSX_ARCHITECTURES=arm64\;x86_64 -D CMAKE_OSX_DEPLOYMENT_TARGET=10.13
-```
-The `-D CMAKE_OSX_ARCHITECTURES=arm64\;x86_64` flag is required to build universal binaries.
+## Building Project
 
-The `-D CMAKE_OSX_DEPLOYMENT_TARGET=10.13` flag sets the minimum MacOS version to be supported.
-
----
-
-To generate a **Visual Studio 2022 (17)** project, run:
-```sh
-cmake -B Build -G "Visual Studio 17"
-```
-
-## Building
-
-To build the generated IDE project from the command line, run:
-```sh
-cmake --build Build --config Debug
-```
+This project depends on JUCE, pytorch, and RTNeural [2]. C++ code is built via CMake on Windows using VS2022, with project structure and CMakeLists based on GitHub user anthonyalfimov's JUCE-CMake-Plugin-Template [3]. JUCE should be automatically installed by CMake, and git should clone RTNeural as a submodule into the the Third_Party directory. Python version 3.11.5 was used during development, and the Python dependencies can be installed by running pip install -r requirements.txt from the Python directory.
 
 ## References
 
-Based on the [JUCE/examples/CMake/AudioPlugin](https://github.com/juce-framework/JUCE/tree/master/examples/CMake/AudioPlugin) template.
-
-Inspired by:
-
-- [sudara/pamplejuce](https://github.com/sudara/pamplejuce)
-- [eyalamirmusic/JUCECmakeRepoPrototype](https://github.com/eyalamirmusic/JUCECmakeRepoPrototype)
+[1] https://www.dafx.de/paper-archive/2019/DAFx2019_paper_42.pdf
+[2] https://github.com/jatinchowdhury18/RTNeural
+[3] https://github.com/anthonyalfimov/JUCE-CMake-Plugin-Template
