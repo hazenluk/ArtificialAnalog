@@ -2,9 +2,11 @@
 
 An emulation of classic analog effects using machine learning and state-space analysis of nonlinear circuits (WIP).
 
+[![Diode Clipper Distortion VST Example](Documentation/GitHub/youtube_thumbnail.png)](https://www.youtube.com/watch?v=AVldGj0ZkN4 "Diode Clipper Example")
+
 The concept is based on the work of Julian Parker et. all [1], with new contributions being compilation of the model into a real-time performant VST and modelling of reponses to user parameter changes in dynamic use.
 
-Training is currently ocurring using the guitar sample provided by Parker et. all, as this project is in its early stages. This will be replaced with a more robust training example set soon.
+Training is currently ocurring using the guitar sample provided by Parker et. all, as this project is in its early stages. The sample is run through an LTSpice simulation to generate the target input, output, and state data. This will be replaced with a more robust training example set soon.
 
 Current progress includes emulation of the results of Parker et. all in real-time and packaging into a VST. Future work will focus on the construction of a physical hardware device for sampling circuits, dynamic changes in the model in response to user input, improving model musicality, and publicly releasing a database of models emulating famous and classic circuits.
 
