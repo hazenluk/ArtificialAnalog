@@ -16,5 +16,7 @@ This project depends on JUCE, pytorch, and RTNeural [2]. C++ code is built via C
 ## References
 
 [1] https://www.dafx.de/paper-archive/2019/DAFx2019_paper_42.pdf
+
 [2] https://github.com/jatinchowdhury18/RTNeural
+
 [3] https://github.com/anthonyalfimov/JUCE-CMake-Plugin-Template
