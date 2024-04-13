@@ -1,4 +1,4 @@
-# Real-time Modelling of Nonlinear Dynamical Systems for Analog Audio Emulation
+# Real-time Modeling of Nonlinear Dynamical Systems for Analog Audio Emulation
 
 An emulation of classic analog effects using machine learning and state-space analysis of nonlinear circuits (WIP).
 
