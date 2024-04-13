@@ -2,6 +2,7 @@
 
 An emulation of classic analog effects using machine learning and state-space analysis of nonlinear circuits (WIP).
 
+## YouTube Demo
 [![Diode Clipper Distortion VST Example](Documentation/GitHub/youtube_thumbnail.png)](https://www.youtube.com/watch?v=AVldGj0ZkN4 "Diode Clipper Example")
 
 The concept is based on the work of Julian Parker et. all [1], with new contributions being compilation of the model into a real-time performant VST and modelling of reponses to user parameter changes in dynamic use.
