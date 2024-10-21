@@ -1,6 +1,6 @@
 # Real-time Modeling of Nonlinear Dynamical Systems for Analog Audio Emulation
 
-An emulation of classic analog effects using machine learning and state-space analysis of nonlinear circuits (WIP).
+An emulation of classic analog audio effects using machine learning and state-space analysis of nonlinear circuits (WIP).
 
 ## YouTube Demo
 The Youtube Demo shows the model being used in a VST environment, with the addition of pre- and post-gain for setting drive and level.
